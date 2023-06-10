@@ -1,8 +1,8 @@
 import { Component, createSignal } from 'solid-js';
 
-import TerminalPage from './pages/TerminalPage';
+import MainPage from './pages/MainPage';
 
 const App: Component = () =>
-  <TerminalPage />
+  <MainPage />
 
 export default App;

@@ -1,12 +1,17 @@
 
 import { Component, createSignal } from 'solid-js';
 
-const Terminal: Component = () => {
-  const [text, setText] = createSignal('');
+type Props = {
+  text: string;
+}
 
+export const Terminal: Component<Props> = (props: Props) => {
   return (
-    <></>
+    <>
+      <h2>Terminal</h2>
+      <textarea>
+        {props.text}
+      </textarea>
+    </>
   );
 };
-
-export default Terminal;

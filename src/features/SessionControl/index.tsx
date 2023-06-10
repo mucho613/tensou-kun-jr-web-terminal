@@ -1,17 +1,18 @@
-import { Component, createEffect, createSignal } from 'solid-js';
-import styles from './TerminalPage.module.css';
+import { Component, createEffect, createSignal } from "solid-js";
 
-const TerminalPage: Component = () => {
-  const [text, setText] = createSignal('');
+type Props = {
+  addText: (text: string) => void;
+}
 
+export const SessionControl: Component<Props> = (props: Props) => {
   const [activePort, setActivePort] = createSignal<SerialPort | null>(null);
-  const [ports, setPorts] = createSignal<SerialPort[]>([]);
+  const [availablePorts, setAvailablePorts] = createSignal<SerialPort[]>([]);
 
   const [activeWriter, setActiveWriter] = createSignal<WritableStreamDefaultWriter | null>(null)
 
-  const textDecoder = new TextDecoder();
-
   const connect = async () => {
+    const textDecoder = new TextDecoder();
+
     const port = await navigator.serial.requestPort();
     await port.open({ baudRate: 70000 });
 
@@ -29,7 +30,7 @@ const TerminalPage: Component = () => {
           if (done) {
             break;
           }
-          setText((prev) => prev + textDecoder.decode(value));
+          props.addText(textDecoder.decode(value));
         }
       } catch (error) {
         throw new Error("Read error!");
@@ -39,23 +40,16 @@ const TerminalPage: Component = () => {
     }
   }
 
-  const receive = () => {
-    const writer = activeWriter();
+  createEffect(async () => setAvailablePorts(await navigator.serial.getPorts()));
 
-    if (!writer) {
-      return;
-    }
+  createEffect(() => {
 
-    writer.write(new TextEncoder().encode("02"));
-  }
+  });
 
   return (
-    <div style={styles}>
-      <h1>Tensou-kun Jr. Web Terminal</h1>
-
+    <>
       <h2>Web serial port controls</h2>
       <button onClick={connect}>Connect</button>
-      <button onClick={receive}>Receive</button>
 
       <h2>Active port</h2>
       <p>{activePort() ? "Connected" : "Not connected"}</p>
@@ -63,15 +57,11 @@ const TerminalPage: Component = () => {
 
       <h2>Available ports</h2>
       <ul>
-        {ports().map((port) => <li>{JSON.stringify(port)}</li>)}
+        {availablePorts().map((port, index) =>
+          <li>
+            {index + 1}: {JSON.stringify(port.getInfo())}
+          </li>)}
       </ul>
-
-      <h2>Terminal</h2>
-      <textarea>
-        {text()}
-      </textarea>
-    </div>
-  );
-};
-
-export default TerminalPage;
+    </>
+  )
+}
